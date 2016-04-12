@@ -3,11 +3,13 @@
 
 
 //introduce variables and objects
+PImage[] arrayOfImages;
 PImage mapImage;
+PImage mapSubImage;
 Table locationTable; //this is using the Table object
 Table amountsTable; //this is using the Table object
-Table names;
-
+Table namesTable;
+Table imagesTable;
 int rowCount;
 float dataMin = MAX_FLOAT;
 float dataMax = MIN_FLOAT;
@@ -15,17 +17,38 @@ float dataMax = MIN_FLOAT;
 //global variables assigned values in drawData()
 float closestDist;
 String closestText;
+String loadImages;
+String id;
 float closestTextX;
 float closestTextY;
 
+
 void setup() {
-  size(1200, 645);
-  mapImage = loadImage("map.png");
+  size(640, 400);
+    for (int row = 0; row<rowCount; row++) {
+    //assign id values to variable called id
+    String id = namesTable.getRowName(row);
+    //get the 2nd and 3rd fields and assign them to
+    float x = locationTable.getFloat(id, 1);
+    float y = locationTable.getFloat(id, 2);
+    //use the drawData function (written below) to position and visualize
+    drawData(x, y, id);
+    println(id);
+  }
+  mapImage = loadImage("oakland_map.png");
+  arrayOfImages = new PImage[6];
+ for(int i=0;i<arrayOfImages.length;i++){
+  arrayOfImages[i] = loadImage(i+".png"); 
+  }
+  
+
+
 
   //assign tables to object
   locationTable = new Table("locations.tsv");  
   amountsTable = new Table("amounts.tsv");
-  names = new Table("names.tsv");
+  namesTable = new Table("names.tsv");
+  imagesTable = new Table("images.tsv");
 
   // get number of rows and store in a variable called rowCount
   rowCount = locationTable.getRowCount();
@@ -54,18 +77,23 @@ void draw() {
 //count through rows of location table, 
   for (int row = 0; row<rowCount; row++) {
     //assign id values to variable called id
-    String id = amountsTable.getRowName(row);
+    String id = namesTable.getRowName(row);
     //get the 2nd and 3rd fields and assign them to
     float x = locationTable.getFloat(id, 1);
     float y = locationTable.getFloat(id, 2);
     //use the drawData function (written below) to position and visualize
     drawData(x, y, id);
+    println(id);
   }
 
 //if the closestDist variable does not equal the maximum float variable....
   if (closestDist != MAX_FLOAT) {
-    fill(0);
+
+
+
+    fill(#FF4C33);
     textAlign(CENTER);
+    textSize(20);
     text(closestText, closestTextX, closestTextY);
   }
 }
@@ -75,30 +103,35 @@ void draw() {
 void drawData(float x, float y, String id) {
 //value variable equals second field in row
   float value = amountsTable.getFloat(id, 1);
-  float radius = 0;
+  float radius = 20;
 //if the value variable holds a float greater than or equal to 0
   if (value>=0) {
     //remap the value to a range between 1.5 and 15
     radius = map(value, 0, dataMax, 1.5, 15); 
     //and make it this color
-    fill(#4422CC);
+    fill(#00E0FF);
   } else {
     //otherwise, if the number is negative, make it this color.
     radius = map(value, 0, dataMin, 1.5, 15);
-    fill(#FF4422);
+    fill(75);
   }
   //make a circle at the x and y locations using the radius values assigned above
   ellipseMode(RADIUS);
-  ellipse(x, y, radius, radius);
+  ellipse(x, y, radius,radius);
 
   float d = dist(x, y, mouseX, mouseY);
 
 //if the mouse is hovering over circle, show information as text
   if ((d<radius+2) && (d<closestDist)) {
     closestDist = d;
-    String name = names.getString(id, 1);
+    String name = namesTable.getString(id, 1);
+    String image = imagesTable.getString(id,1);
     closestText = name;
+    loadImages = image;
     closestTextX = x;
     closestTextY = y-radius-4;
+    int newId = int(id);
+    mapSubImage = loadImage(newId + ".png");
+    image(mapSubImage,50,50,300,200);
   }
 }
